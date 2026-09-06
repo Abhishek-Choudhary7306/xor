@@ -1,21 +1,21 @@
 "use client";
 
-import { Bot, Download, FileText } from "lucide-react";
+import { Bot, Download } from "lucide-react";
 
 type OutputPanelProps = {
   output: string;
   downloadUrl?: string | null;
   fileName?: string;
+  downloadLabel?: string;
 };
 
 export default function OutputPanel({
   output,
   downloadUrl,
   fileName = "ai-studio-presentation.pptx",
+  downloadLabel = "Download PowerPoint",
 }: OutputPanelProps) {
-  if (!output && !downloadUrl) {
-    return null;
-  }
+  if (!output && !downloadUrl) return null;
 
   return (
     <div className="mt-10 w-full max-w-3xl">
@@ -25,12 +25,8 @@ export default function OutputPanel({
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-black">
               <Bot size={15} />
             </div>
-
-            <span className="text-xs font-medium text-white/60">
-              AI Studio
-            </span>
+            <span className="text-xs font-medium text-white/60">AI Studio</span>
           </div>
-
           <div className="whitespace-pre-wrap text-sm leading-7 text-white/80">
             {output}
           </div>
@@ -44,7 +40,7 @@ export default function OutputPanel({
           className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-white/90"
         >
           <Download size={17} />
-          Download PowerPoint
+          {downloadLabel}
         </a>
       )}
     </div>
