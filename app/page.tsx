@@ -56,6 +56,9 @@ export default function Home() {
   const [generatedVideo, setGeneratedVideo] =
     useState<string | null>(null);
 
+  const [generatedInfographic, setGeneratedInfographic] =
+    useState<string | null>(null);
+
   const [specializedType, setSpecializedType] =
     useState<SpecializedType | null>(null);
 
@@ -222,6 +225,7 @@ export default function Home() {
   ) => {
     setGeneratedImage(image);
     setGeneratedVideo(null);
+    setGeneratedInfographic(null);
     setOutput("");
 
     clearDownload();
@@ -237,6 +241,30 @@ export default function Home() {
   ) => {
     setGeneratedVideo(video);
     setGeneratedImage(null);
+    setGeneratedInfographic(null);
+    setOutput("");
+
+    clearDownload();
+    clearSpecialized();
+  };
+
+  /* =========================================================
+     GENERATED INFOGRAPHIC
+
+     PromptBox
+        ↓
+     /api/infographic
+        ↓
+     Gemini + Cloudflare FLUX
+     ========================================================= */
+
+  const handleInfographicGenerated = (
+    infographic: string
+  ) => {
+    setGeneratedInfographic(infographic);
+
+    setGeneratedImage(null);
+    setGeneratedVideo(null);
     setOutput("");
 
     clearDownload();
@@ -247,10 +275,10 @@ export default function Home() {
      SPECIALIZED RESPONSE
 
      PromptBox
-          ↓
+        ↓
      /api/specialized
-          ↓
-        Gemini
+        ↓
+     Gemini
 
      There is NO orchestrator involved.
      ========================================================= */
@@ -268,6 +296,7 @@ export default function Home() {
     setOutput("");
     setGeneratedImage(null);
     setGeneratedVideo(null);
+    setGeneratedInfographic(null);
 
     clearDownload();
   };
@@ -285,6 +314,7 @@ export default function Home() {
     setOutput("");
     setGeneratedImage(null);
     setGeneratedVideo(null);
+    setGeneratedInfographic(null);
 
     clearDownload();
     clearSpecialized();
@@ -597,6 +627,7 @@ export default function Home() {
             !downloadUrl &&
             !generatedImage &&
             !generatedVideo &&
+            !generatedInfographic &&
             !specializedData && (
               <div
                 data-animate="hero"
@@ -639,6 +670,9 @@ export default function Home() {
               onVideoGenerated={
                 handleVideoGenerated
               }
+              onInfographicGenerated={
+                handleInfographicGenerated
+              }
               onSpecializedGenerated={
                 handleSpecializedGenerated
               }
@@ -656,6 +690,32 @@ export default function Home() {
                 alt="Generated image"
                 className="h-auto w-full object-contain"
               />
+            </div>
+          )}
+
+          {/* =================================================
+              GENERATED INFOGRAPHIC
+              ================================================= */}
+
+          {generatedInfographic && (
+            <div className="mt-8 w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+              <div className="border-b border-white/10 px-5 py-4">
+                <p className="text-sm font-medium text-white">
+                  Generated Infographic
+                </p>
+
+                <p className="mt-1 text-xs text-white/30">
+                  AI-selected visual structure
+                </p>
+              </div>
+
+              <div className="bg-black/20 p-4">
+                <img
+                  src={generatedInfographic}
+                  alt="Generated infographic"
+                  className="h-auto w-full object-contain"
+                />
+              </div>
             </div>
           )}
 

@@ -9,6 +9,7 @@ import {
   X,
   MessageSquareText,
   BriefcaseBusiness,
+  LayoutDashboard,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -27,6 +28,10 @@ type PromptBoxProps = {
     image: string
   ) => void;
 
+  onInfographicGenerated?: (
+    infographic: string
+  ) => void;
+
   onVideoGenerated?: (
     video: string
   ) => void;
@@ -42,6 +47,7 @@ type PromptBoxProps = {
 export default function PromptBox({
   onSubmit,
   onImageGenerated,
+  onInfographicGenerated,
   onVideoGenerated,
   onSpecializedGenerated,
   loading = false,
@@ -50,6 +56,9 @@ export default function PromptBox({
     useState("");
 
   const [imageLoading, setImageLoading] =
+    useState(false);
+
+  const [infographicLoading, setInfographicLoading] =
     useState(false);
 
   const [videoLoading, setVideoLoading] =
@@ -115,6 +124,7 @@ export default function PromptBox({
       !value ||
       loading ||
       imageLoading ||
+      infographicLoading ||
       videoLoading ||
       specializedLoading
     ) {
@@ -132,6 +142,8 @@ export default function PromptBox({
 
   /* =========================================================
      IMAGE GENERATION
+
+     EXISTING FLOW — DO NOT CHANGE
      ========================================================= */
 
   const handleGenerateImage =
@@ -142,6 +154,7 @@ export default function PromptBox({
         !value ||
         loading ||
         imageLoading ||
+        infographicLoading ||
         videoLoading ||
         specializedLoading ||
         attachedFile
@@ -204,6 +217,88 @@ export default function PromptBox({
     };
 
   /* =========================================================
+     INFOGRAPHIC GENERATION
+
+     Prompt
+        ↓
+     /api/infographic
+        ↓
+     Gemini + image generation
+        ↓
+     Infographic
+     ========================================================= */
+
+  const handleGenerateInfographic =
+    async () => {
+      const value = prompt.trim();
+
+      if (
+        !value ||
+        loading ||
+        imageLoading ||
+        infographicLoading ||
+        videoLoading ||
+        specializedLoading ||
+        attachedFile
+      ) {
+        return;
+      }
+
+      setInfographicLoading(true);
+
+      try {
+        const response = await fetch(
+          "/api/infographic",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              prompt: value,
+            }),
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              "Infographic generation failed"
+          );
+        }
+
+        if (!data.infographic) {
+          throw new Error(
+            "No infographic was returned"
+          );
+        }
+
+        onInfographicGenerated?.(
+          data.infographic
+        );
+
+        setPrompt("");
+      } catch (error) {
+        console.error(
+          "Infographic generation error:",
+          error
+        );
+
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate infographic"
+        );
+      } finally {
+        setInfographicLoading(false);
+      }
+    };
+
+  /* =========================================================
      VIDEO GENERATION
      ========================================================= */
 
@@ -215,6 +310,7 @@ export default function PromptBox({
         !value ||
         loading ||
         imageLoading ||
+        infographicLoading ||
         videoLoading ||
         specializedLoading ||
         attachedFile
@@ -297,6 +393,7 @@ export default function PromptBox({
       !value ||
       loading ||
       imageLoading ||
+      infographicLoading ||
       videoLoading ||
       specializedLoading ||
       attachedFile
@@ -363,6 +460,7 @@ export default function PromptBox({
   const busy =
     loading ||
     imageLoading ||
+    infographicLoading ||
     videoLoading ||
     !!specializedLoading;
 
@@ -378,6 +476,9 @@ export default function PromptBox({
             =================================================== */}
 
         <div className="mb-3 flex flex-wrap items-center gap-2">
+
+          {/* Generate Image */}
+
           <button
             type="button"
             onClick={
@@ -403,6 +504,38 @@ export default function PromptBox({
               ? "Generating..."
               : "Generate Image"}
           </button>
+
+          {/* Generate Infographic */}
+
+          <button
+            type="button"
+            onClick={
+              handleGenerateInfographic
+            }
+            disabled={
+              !prompt.trim() ||
+              busy ||
+              !!attachedFile
+            }
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            {infographicLoading ? (
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+            ) : (
+              <LayoutDashboard
+                size={15}
+              />
+            )}
+
+            {infographicLoading
+              ? "Generating..."
+              : "Generate Infographic"}
+          </button>
+
+          {/* Generate Video */}
 
           <button
             type="button"
