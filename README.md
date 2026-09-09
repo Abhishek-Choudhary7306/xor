@@ -1,6 +1,6 @@
 # IntelliSource 🚀
 
-IntelliSource is a prototype multimodal AI workspace built with Next.js, TypeScript, Tailwind CSS, Gemini, Cloudflare Workers AI, PDF.js, PDFKit, PptxGenJS, Anime.js, and Lucide React.
+IntelliSource is a AI workspace built with Next.js, TypeScript, Tailwind CSS, Gemini, Cloudflare Workers AI, PDF.js, PDFKit, PptxGenJS, Anime.js, and Lucide React.
 
 ## ✨ Features
 
