@@ -65,10 +65,6 @@ export default function Home() {
   const [specializedData, setSpecializedData] =
     useState<SpecializedData | null>(null);
 
-  /* =========================================================
-     TYPEWRITER HERO
-     ========================================================= */
-
   const [typingText, setTypingText] =
     useState("");
 
@@ -129,10 +125,6 @@ export default function Home() {
     typingIndex,
     isDeleting,
   ]);
-
-  /* =========================================================
-     INTRO ANIMATION
-     ========================================================= */
 
   useEffect(() => {
     if (!root.current) return;
@@ -198,10 +190,6 @@ export default function Home() {
       scope.current?.revert();
   }, []);
 
-  /* =========================================================
-     CLEANUP
-     ========================================================= */
-
   const clearDownload = () => {
     if (downloadUrl) {
       URL.revokeObjectURL(downloadUrl);
@@ -216,10 +204,6 @@ export default function Home() {
     setSpecializedData(null);
   };
 
-  /* =========================================================
-     GENERATED IMAGE
-     ========================================================= */
-
   const handleImageGenerated = (
     image: string
   ) => {
@@ -231,10 +215,6 @@ export default function Home() {
     clearDownload();
     clearSpecialized();
   };
-
-  /* =========================================================
-     GENERATED VIDEO
-     ========================================================= */
 
   const handleVideoGenerated = (
     video: string
@@ -248,16 +228,6 @@ export default function Home() {
     clearSpecialized();
   };
 
-  /* =========================================================
-     GENERATED INFOGRAPHIC
-
-     PromptBox
-        ↓
-     /api/infographic
-        ↓
-     Gemini + Cloudflare FLUX
-     ========================================================= */
-
   const handleInfographicGenerated = (
     infographic: string
   ) => {
@@ -270,18 +240,6 @@ export default function Home() {
     clearDownload();
     clearSpecialized();
   };
-
-  /* =========================================================
-     SPECIALIZED RESPONSE
-
-     PromptBox
-        ↓
-     /api/specialized
-        ↓
-     Gemini
-
-     There is NO orchestrator involved.
-     ========================================================= */
 
   const handleSpecializedGenerated = (
     type: SpecializedType,
@@ -301,10 +259,6 @@ export default function Home() {
     clearDownload();
   };
 
-  /* =========================================================
-     MAIN SUBMIT FLOW
-     ========================================================= */
-
   const handleSubmit = async (
     prompt: string,
     file?: File
@@ -320,13 +274,6 @@ export default function Home() {
     clearSpecialized();
 
     try {
-      /* =====================================================
-         PDF ATTACHED
-
-         Direct PDF chat.
-         NO ORCHESTRATOR.
-         ===================================================== */
-
       if (file) {
         const formData = new FormData();
 
@@ -367,12 +314,6 @@ export default function Home() {
         return;
       }
 
-      /* =====================================================
-         NORMAL PROMPT
-
-         Prompt → Orchestrator
-         ===================================================== */
-
       const orchestratorResponse =
         await fetch(
           "/api/orchestrate",
@@ -402,10 +343,6 @@ export default function Home() {
         "Detected intent:",
         orchestratorData.intent
       );
-
-      /* =====================================================
-         PPT
-         ===================================================== */
 
       if (
         orchestratorData.intent ===
@@ -455,10 +392,6 @@ export default function Home() {
         return;
       }
 
-      /* =====================================================
-         PDF
-         ===================================================== */
-
       if (
         orchestratorData.intent ===
         "pdf"
@@ -506,10 +439,6 @@ export default function Home() {
 
         return;
       }
-
-      /* =====================================================
-         CHAT
-         ===================================================== */
 
       if (
         orchestratorData.intent ===
@@ -564,23 +493,15 @@ export default function Home() {
     }
   };
 
-  /* =========================================================
-     DOWNLOAD
-     ========================================================= */
-
   const fileName =
     downloadType === "pdf"
-      ? "ai-studio-document.pdf"
-      : "ai-studio-presentation.pptx";
+      ? "intellisource-document.pdf"
+      : "intellisource-presentation.pptx";
 
   const downloadLabel =
     downloadType === "pdf"
       ? "Download PDF"
       : "Download PowerPoint";
-
-  /* =========================================================
-     PAGE
-     ========================================================= */
 
   return (
     <main
@@ -590,10 +511,6 @@ export default function Home() {
       <Sidebar />
 
       <section className="relative flex flex-1 flex-col">
-        {/* ===================================================
-            HEADER
-            =================================================== */}
-
         <header
           data-animate="header"
           className="flex h-16 items-center justify-between border-b border-white/5 px-8"
@@ -614,15 +531,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* ===================================================
-            CONTENT
-            =================================================== */}
-
         <div className="flex flex-1 flex-col items-center px-6 py-16">
-          {/* =================================================
-              HERO
-              ================================================= */}
-
           {!output &&
             !downloadUrl &&
             !generatedImage &&
@@ -647,15 +556,11 @@ export default function Home() {
 
                 <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-white/30">
                   Give AI a prompt or upload
-                  a document and let AI Studio
+                  a document and let IntelliSource
                   handle the rest.
                 </p>
               </div>
             )}
-
-          {/* =================================================
-              PROMPT BOX
-              ================================================= */}
 
           <div
             data-animate="prompt"
@@ -679,10 +584,6 @@ export default function Home() {
             />
           </div>
 
-          {/* =================================================
-              GENERATED IMAGE
-              ================================================= */}
-
           {generatedImage && (
             <div className="mt-8 w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
               <img
@@ -692,10 +593,6 @@ export default function Home() {
               />
             </div>
           )}
-
-          {/* =================================================
-              GENERATED INFOGRAPHIC
-              ================================================= */}
 
           {generatedInfographic && (
             <div className="mt-8 w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
@@ -719,10 +616,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* =================================================
-              GENERATED VIDEO
-              ================================================= */}
-
           {generatedVideo && (
             <div className="mt-8 w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
               <video
@@ -734,10 +627,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* =================================================
-              SPECIALIZED STRUCTURED OUTPUT
-              ================================================= */}
-
           {specializedData &&
             specializedType && (
               <SpecializedOutput
@@ -745,10 +634,6 @@ export default function Home() {
                 data={specializedData}
               />
             )}
-
-          {/* =================================================
-              NORMAL OUTPUT
-              ================================================= */}
 
           <OutputPanel
             output={output}
@@ -761,10 +646,6 @@ export default function Home() {
     </main>
   );
 }
-
-/* =========================================================
-   SPECIALIZED OUTPUT
-   ========================================================= */
 
 function SpecializedOutput({
   type,
@@ -787,10 +668,6 @@ function SpecializedOutput({
     <AdvisoryOutput data={data} />
   );
 }
-
-/* =========================================================
-   LINKEDIN
-   ========================================================= */
 
 function LinkedInOutput({
   data,
@@ -867,10 +744,6 @@ function LinkedInOutput({
     </div>
   );
 }
-
-/* =========================================================
-   X
-   ========================================================= */
 
 function XOutput({
   data,
@@ -973,10 +846,6 @@ function XOutput({
   );
 }
 
-/* =========================================================
-   ADVISORY
-   ========================================================= */
-
 function AdvisoryOutput({
   data,
 }: {
@@ -1039,10 +908,6 @@ function AdvisoryOutput({
     </div>
   );
 }
-
-/* =========================================================
-   REUSABLE OUTPUT UI
-   ========================================================= */
 
 function OutputSection({
   label,
