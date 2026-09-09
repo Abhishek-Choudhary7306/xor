@@ -3,7 +3,6 @@
 import {
   ArrowUp,
   Image as ImageIcon,
-  Link,
   Loader2,
   Paperclip,
   Video,
@@ -19,13 +18,24 @@ type SpecializedType =
   | "advisory";
 
 type PromptBoxProps = {
-  onSubmit: (prompt: string, file?: File) => void;
-  onImageGenerated?: (image: string) => void;
-  onVideoGenerated?: (video: string) => void;
+  onSubmit: (
+    prompt: string,
+    file?: File
+  ) => void;
+
+  onImageGenerated?: (
+    image: string
+  ) => void;
+
+  onVideoGenerated?: (
+    video: string
+  ) => void;
+
   onSpecializedGenerated?: (
     type: SpecializedType,
     data: unknown
   ) => void;
+
   loading?: boolean;
 };
 
@@ -36,27 +46,51 @@ export default function PromptBox({
   onSpecializedGenerated,
   loading = false,
 }: PromptBoxProps) {
-  const [prompt, setPrompt] = useState("");
-  const [imageLoading, setImageLoading] = useState(false);
-  const [videoLoading, setVideoLoading] = useState(false);
-  const [specializedLoading, setSpecializedLoading] =
-    useState<SpecializedType | null>(null);
+  const [prompt, setPrompt] =
+    useState("");
+
+  const [imageLoading, setImageLoading] =
+    useState(false);
+
+  const [videoLoading, setVideoLoading] =
+    useState(false);
+
+  const [
+    specializedLoading,
+    setSpecializedLoading,
+  ] =
+    useState<SpecializedType | null>(
+      null
+    );
 
   const [attachedFile, setAttachedFile] =
     useState<File | null>(null);
 
   const fileInputRef =
-    useRef<HTMLInputElement | null>(null);
+    useRef<HTMLInputElement | null>(
+      null
+    );
+
+  /* =========================================================
+     PDF UPLOAD
+     ========================================================= */
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file.");
+    if (
+      file.type !==
+      "application/pdf"
+    ) {
+      alert(
+        "Please upload a PDF file."
+      );
+
       event.target.value = "";
       return;
     }
@@ -69,6 +103,10 @@ export default function PromptBox({
   const handleRemoveFile = () => {
     setAttachedFile(null);
   };
+
+  /* =========================================================
+     NORMAL SUBMIT
+     ========================================================= */
 
   const handleSubmit = () => {
     const value = prompt.trim();
@@ -92,140 +130,164 @@ export default function PromptBox({
     setAttachedFile(null);
   };
 
-  const handleGenerateImage = async () => {
-    const value = prompt.trim();
+  /* =========================================================
+     IMAGE GENERATION
+     ========================================================= */
 
-    if (
-      !value ||
-      loading ||
-      imageLoading ||
-      videoLoading ||
-      specializedLoading ||
-      attachedFile
-    ) {
-      return;
-    }
+  const handleGenerateImage =
+    async () => {
+      const value = prompt.trim();
 
-    setImageLoading(true);
-
-    try {
-      const response = await fetch("/api/image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: value,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Image generation failed"
-        );
+      if (
+        !value ||
+        loading ||
+        imageLoading ||
+        videoLoading ||
+        specializedLoading ||
+        attachedFile
+      ) {
+        return;
       }
 
-      if (!data.image) {
-        throw new Error(
-          "No image was returned"
+      setImageLoading(true);
+
+      try {
+        const response = await fetch(
+          "/api/image",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              prompt: value,
+            }),
+          }
         );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              "Image generation failed"
+          );
+        }
+
+        if (!data.image) {
+          throw new Error(
+            "No image was returned"
+          );
+        }
+
+        onImageGenerated?.(
+          data.image
+        );
+
+        setPrompt("");
+      } catch (error) {
+        console.error(
+          "Image generation error:",
+          error
+        );
+
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate image"
+        );
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+  /* =========================================================
+     VIDEO GENERATION
+     ========================================================= */
+
+  const handleGenerateVideo =
+    async () => {
+      const value = prompt.trim();
+
+      if (
+        !value ||
+        loading ||
+        imageLoading ||
+        videoLoading ||
+        specializedLoading ||
+        attachedFile
+      ) {
+        return;
       }
 
-      onImageGenerated?.(data.image);
+      setVideoLoading(true);
 
-      setPrompt("");
-    } catch (error) {
-      console.error(
-        "Image generation error:",
-        error
-      );
-
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate image"
-      );
-    } finally {
-      setImageLoading(false);
-    }
-  };
-
-  const handleGenerateVideo = async () => {
-    const value = prompt.trim();
-
-    if (
-      !value ||
-      loading ||
-      imageLoading ||
-      videoLoading ||
-      specializedLoading ||
-      attachedFile
-    ) {
-      return;
-    }
-
-    setVideoLoading(true);
-
-    try {
-      const response = await fetch("/api/video", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: value,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error ||
-            "Video generation failed"
+      try {
+        const response = await fetch(
+          "/api/video",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              prompt: value,
+            }),
+          }
         );
-      }
 
-      if (!data.video) {
-        throw new Error(
-          "No video was returned"
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              "Video generation failed"
+          );
+        }
+
+        if (!data.video) {
+          throw new Error(
+            "No video was returned"
+          );
+        }
+
+        onVideoGenerated?.(
+          data.video
         );
+
+        setPrompt("");
+      } catch (error) {
+        console.error(
+          "Video generation error:",
+          error
+        );
+
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate video"
+        );
+      } finally {
+        setVideoLoading(false);
       }
+    };
 
-      onVideoGenerated?.(data.video);
+  /* =========================================================
+     SPECIALIZED ACTIONS
 
-      setPrompt("");
-    } catch (error) {
-      console.error(
-        "Video generation error:",
-        error
-      );
+     These DO NOT use the orchestrator.
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate video"
-      );
-    } finally {
-      setVideoLoading(false);
-    }
-  };
+     Button
+        ↓
+     /api/specialized
+        ↓
+     Gemini directly
+     ========================================================= */
 
-  /*
-   * SPECIALIZED ACTIONS
-   *
-   * IMPORTANT:
-   * These DO NOT use the orchestrator.
-   *
-   * Button
-   *   ↓
-   * /api/specialized
-   *   ↓
-   * Gemini directly
-   */
   const handleSpecialized = async (
     type: SpecializedType
   ) => {
@@ -250,7 +312,8 @@ export default function PromptBox({
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
           body: JSON.stringify({
             type,
@@ -259,7 +322,8 @@ export default function PromptBox({
         }
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -309,11 +373,16 @@ export default function PromptBox({
     >
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 shadow-2xl shadow-black/20 backdrop-blur-xl transition focus-within:border-white/20">
 
-        {/* Media Generation Buttons */}
+        {/* ===================================================
+            MEDIA GENERATION
+            =================================================== */}
+
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={handleGenerateImage}
+            onClick={
+              handleGenerateImage
+            }
             disabled={
               !prompt.trim() ||
               busy ||
@@ -337,7 +406,9 @@ export default function PromptBox({
 
           <button
             type="button"
-            onClick={handleGenerateVideo}
+            onClick={
+              handleGenerateVideo
+            }
             disabled={
               !prompt.trim() ||
               busy ||
@@ -360,13 +431,20 @@ export default function PromptBox({
           </button>
         </div>
 
-        {/* Specialized AI Buttons */}
+        {/* ===================================================
+            SPECIALIZED AI
+            =================================================== */}
+
         <div className="mb-3 flex flex-wrap items-center gap-2">
+
           {/* LinkedIn */}
+
           <button
             type="button"
             onClick={() =>
-              handleSpecialized("linkedin")
+              handleSpecialized(
+                "linkedin"
+              )
             }
             disabled={
               !prompt.trim() ||
@@ -394,6 +472,7 @@ export default function PromptBox({
           </button>
 
           {/* X */}
+
           <button
             type="button"
             onClick={() =>
@@ -406,7 +485,8 @@ export default function PromptBox({
             }
             className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
           >
-            {specializedLoading === "x" ? (
+            {specializedLoading ===
+            "x" ? (
               <Loader2
                 size={15}
                 className="animate-spin"
@@ -423,10 +503,13 @@ export default function PromptBox({
           </button>
 
           {/* Advisory */}
+
           <button
             type="button"
             onClick={() =>
-              handleSpecialized("advisory")
+              handleSpecialized(
+                "advisory"
+              )
             }
             disabled={
               !prompt.trim() ||
@@ -454,7 +537,10 @@ export default function PromptBox({
           </button>
         </div>
 
-        {/* Attached PDF */}
+        {/* ===================================================
+            ATTACHED PDF
+            =================================================== */}
+
         {attachedFile && (
           <div className="mb-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
@@ -474,7 +560,9 @@ export default function PromptBox({
 
             <button
               type="button"
-              onClick={handleRemoveFile}
+              onClick={
+                handleRemoveFile
+              }
               disabled={busy}
               className="rounded-md p-1 text-white/30 transition hover:bg-white/10 hover:text-white"
               title="Remove PDF"
@@ -484,7 +572,10 @@ export default function PromptBox({
           </div>
         )}
 
-        {/* Prompt */}
+        {/* ===================================================
+            PROMPT
+            =================================================== */}
+
         <textarea
           value={prompt}
           onChange={(e) =>
@@ -509,18 +600,26 @@ export default function PromptBox({
           className="w-full resize-none bg-transparent px-2 py-1 text-sm text-white outline-none placeholder:text-white/25 disabled:opacity-50"
         />
 
-        {/* Bottom Controls */}
+        {/* ===================================================
+            BOTTOM CONTROLS
+            =================================================== */}
+
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-1">
 
             {/* Hidden PDF Input */}
+
             <input
               ref={fileInputRef}
               type="file"
               accept="application/pdf,.pdf"
-              onChange={handleFileChange}
+              onChange={
+                handleFileChange
+              }
               className="hidden"
             />
+
+            {/* Upload PDF */}
 
             <button
               type="button"
@@ -533,15 +632,9 @@ export default function PromptBox({
             >
               <Paperclip size={17} />
             </button>
-
-            <button
-              type="button"
-              className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white"
-              title="Add URL"
-            >
-              <Link size={17} />
-            </button>
           </div>
+
+          {/* Send */}
 
           <button
             onClick={handleSubmit}
@@ -565,7 +658,8 @@ export default function PromptBox({
       </div>
 
       <p className="mt-3 text-center text-[11px] text-white/20">
-        Enter to send · Shift + Enter for a new line
+        Enter to send · Shift + Enter
+        for a new line
       </p>
     </div>
   );
