@@ -8,13 +8,24 @@ import {
   Paperclip,
   Video,
   X,
+  MessageSquareText,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { useRef, useState } from "react";
+
+type SpecializedType =
+  | "linkedin"
+  | "x"
+  | "advisory";
 
 type PromptBoxProps = {
   onSubmit: (prompt: string, file?: File) => void;
   onImageGenerated?: (image: string) => void;
   onVideoGenerated?: (video: string) => void;
+  onSpecializedGenerated?: (
+    type: SpecializedType,
+    data: unknown
+  ) => void;
   loading?: boolean;
 };
 
@@ -22,11 +33,14 @@ export default function PromptBox({
   onSubmit,
   onImageGenerated,
   onVideoGenerated,
+  onSpecializedGenerated,
   loading = false,
 }: PromptBoxProps) {
   const [prompt, setPrompt] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
+  const [specializedLoading, setSpecializedLoading] =
+    useState<SpecializedType | null>(null);
 
   const [attachedFile, setAttachedFile] =
     useState<File | null>(null);
@@ -63,12 +77,16 @@ export default function PromptBox({
       !value ||
       loading ||
       imageLoading ||
-      videoLoading
+      videoLoading ||
+      specializedLoading
     ) {
       return;
     }
 
-    onSubmit(value, attachedFile ?? undefined);
+    onSubmit(
+      value,
+      attachedFile ?? undefined
+    );
 
     setPrompt("");
     setAttachedFile(null);
@@ -82,6 +100,7 @@ export default function PromptBox({
       loading ||
       imageLoading ||
       videoLoading ||
+      specializedLoading ||
       attachedFile
     ) {
       return;
@@ -104,12 +123,15 @@ export default function PromptBox({
 
       if (!response.ok) {
         throw new Error(
-          data.error || "Image generation failed"
+          data.error ||
+            "Image generation failed"
         );
       }
 
       if (!data.image) {
-        throw new Error("No image was returned");
+        throw new Error(
+          "No image was returned"
+        );
       }
 
       onImageGenerated?.(data.image);
@@ -139,6 +161,7 @@ export default function PromptBox({
       loading ||
       imageLoading ||
       videoLoading ||
+      specializedLoading ||
       attachedFile
     ) {
       return;
@@ -161,12 +184,15 @@ export default function PromptBox({
 
       if (!response.ok) {
         throw new Error(
-          data.error || "Video generation failed"
+          data.error ||
+            "Video generation failed"
         );
       }
 
       if (!data.video) {
-        throw new Error("No video was returned");
+        throw new Error(
+          "No video was returned"
+        );
       }
 
       onVideoGenerated?.(data.video);
@@ -188,10 +214,93 @@ export default function PromptBox({
     }
   };
 
+  /*
+   * SPECIALIZED ACTIONS
+   *
+   * IMPORTANT:
+   * These DO NOT use the orchestrator.
+   *
+   * Button
+   *   ↓
+   * /api/specialized
+   *   ↓
+   * Gemini directly
+   */
+  const handleSpecialized = async (
+    type: SpecializedType
+  ) => {
+    const value = prompt.trim();
+
+    if (
+      !value ||
+      loading ||
+      imageLoading ||
+      videoLoading ||
+      specializedLoading ||
+      attachedFile
+    ) {
+      return;
+    }
+
+    setSpecializedLoading(type);
+
+    try {
+      const response = await fetch(
+        "/api/specialized",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type,
+            prompt: value,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "Specialized generation failed"
+        );
+      }
+
+      if (!data.data) {
+        throw new Error(
+          "No structured response was returned"
+        );
+      }
+
+      onSpecializedGenerated?.(
+        type,
+        data.data
+      );
+
+      setPrompt("");
+    } catch (error) {
+      console.error(
+        "Specialized generation error:",
+        error
+      );
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate content"
+      );
+    } finally {
+      setSpecializedLoading(null);
+    }
+  };
+
   const busy =
     loading ||
     imageLoading ||
-    videoLoading;
+    videoLoading ||
+    !!specializedLoading;
 
   return (
     <div
@@ -201,7 +310,7 @@ export default function PromptBox({
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 shadow-2xl shadow-black/20 backdrop-blur-xl transition focus-within:border-white/20">
 
         {/* Media Generation Buttons */}
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleGenerateImage}
@@ -248,6 +357,100 @@ export default function PromptBox({
             {videoLoading
               ? "Generating..."
               : "Generate Video"}
+          </button>
+        </div>
+
+        {/* Specialized AI Buttons */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* LinkedIn */}
+          <button
+            type="button"
+            onClick={() =>
+              handleSpecialized("linkedin")
+            }
+            disabled={
+              !prompt.trim() ||
+              busy ||
+              !!attachedFile
+            }
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            {specializedLoading ===
+            "linkedin" ? (
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+            ) : (
+              <div className="flex h-4 w-4 items-center justify-center rounded-sm bg-white text-[10px] font-bold text-black">
+                in
+              </div>
+            )}
+
+            {specializedLoading ===
+            "linkedin"
+              ? "Creating..."
+              : "LinkedIn"}
+          </button>
+
+          {/* X */}
+          <button
+            type="button"
+            onClick={() =>
+              handleSpecialized("x")
+            }
+            disabled={
+              !prompt.trim() ||
+              busy ||
+              !!attachedFile
+            }
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            {specializedLoading === "x" ? (
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+            ) : (
+              <MessageSquareText
+                size={15}
+              />
+            )}
+
+            {specializedLoading === "x"
+              ? "Creating..."
+              : "X"}
+          </button>
+
+          {/* Advisory */}
+          <button
+            type="button"
+            onClick={() =>
+              handleSpecialized("advisory")
+            }
+            disabled={
+              !prompt.trim() ||
+              busy ||
+              !!attachedFile
+            }
+            className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            {specializedLoading ===
+            "advisory" ? (
+              <Loader2
+                size={15}
+                className="animate-spin"
+              />
+            ) : (
+              <BriefcaseBusiness
+                size={15}
+              />
+            )}
+
+            {specializedLoading ===
+            "advisory"
+              ? "Analyzing..."
+              : "Advisory"}
           </button>
         </div>
 
@@ -309,6 +512,7 @@ export default function PromptBox({
         {/* Bottom Controls */}
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-1">
+
             {/* Hidden PDF Input */}
             <input
               ref={fileInputRef}
