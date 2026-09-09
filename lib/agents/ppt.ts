@@ -54,7 +54,11 @@ Rules:
 `,
   });
 
-  const raw = interaction.output_text.trim();
+  const raw = interaction.output_text?.trim();
+
+  if (!raw) {
+    throw new Error("Gemini returned an empty PPT plan.");
+  }
 
   console.log("PPT GEMINI RESPONSE:");
   console.log(raw);
@@ -147,7 +151,7 @@ Rules:
       fontSize: 18,
       color: "DDDDDD",
       breakLine: true,
-      paraSpaceAfterPt: 16,
+      paraSpaceAfter: 16,
     });
   }
 

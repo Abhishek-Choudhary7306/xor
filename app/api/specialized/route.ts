@@ -19,12 +19,14 @@ export async function POST(request: Request) {
     const type = body.type;
     const prompt = body.prompt;
 
-    if (!type || !VALID_TYPES.includes(type)) {
+    if (!type || !VALID_TYPES.includes(type as SpecializedType)) {
       return NextResponse.json(
         { error: "Invalid specialized action" },
         { status: 400 }
       );
     }
+
+    const specializedType = type as SpecializedType;
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
@@ -44,14 +46,14 @@ export async function POST(request: Request) {
       model: "gemini-3.6-flash",
 
       input: buildSpecializedPrompt(
-        type,
+        specializedType,
         prompt
       ),
 
       response_format: {
         type: "text",
         mime_type: "application/json",
-        schema: specializedSchemas[type],
+        schema: specializedSchemas[specializedType],
       },
     });
 
